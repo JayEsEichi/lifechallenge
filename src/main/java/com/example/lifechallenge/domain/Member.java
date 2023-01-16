@@ -3,14 +3,15 @@ package com.example.lifechallenge.domain;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Setter
 @Getter
 @Entity
-public class Member extends Timestamped{
+public class Member extends Timestamped {
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
@@ -28,5 +29,8 @@ public class Member extends Timestamped{
     @Column(nullable = false)
     private String address;
 
+    @ElementCollection
+    @Builder.Default
+    private List<String> roles = new ArrayList<>();
 
 }
