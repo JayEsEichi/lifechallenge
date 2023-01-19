@@ -5,10 +5,9 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Getter
-@AllArgsConstructor
 @RequiredArgsConstructor
 public class ResponseBody<T>{
-    private final String StatusCode;
-    private final String Status;
+    private final int statusCode;
+    private final String status;
     private final T data;
 }
