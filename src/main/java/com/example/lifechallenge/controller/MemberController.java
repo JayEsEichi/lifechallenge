@@ -1,5 +1,6 @@
 package com.example.lifechallenge.controller;
 
+import com.example.lifechallenge.controller.request.LoginRequestDto;
 import com.example.lifechallenge.controller.request.RegisterRequestDto;
 import com.example.lifechallenge.controller.request.TestRequestDto;
 import com.example.lifechallenge.controller.response.ResponseBody;
@@ -7,6 +8,7 @@ import com.example.lifechallenge.exception.StatusCode;
 import com.example.lifechallenge.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -39,6 +42,16 @@ public class MemberController {
 
         return memberService.memberRegister(registerRequestDto);
     }
+
+
+    // 로그인
+    @PostMapping("/login")
+    public ResponseEntity<ResponseBody> memberLogin(HttpServletResponse response, @RequestBody LoginRequestDto loginRequestDto){
+        log.info("로그인 - 아이디 : {}, 비밀번호 : {}", loginRequestDto.getMember_id(), loginRequestDto.getPassword());
+
+        return memberService.memberLogin(response, loginRequestDto);
+    }
+
 
     // api 활용 도로주소 추출 (아직 테스트 중)
     @PostMapping(value="/sample/getAddrApi.do")

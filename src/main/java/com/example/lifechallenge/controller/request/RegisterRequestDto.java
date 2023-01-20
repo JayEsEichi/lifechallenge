@@ -1,6 +1,5 @@
 package com.example.lifechallenge.controller.request;
 
-import lombok.Builder;
 import lombok.Getter;
 
 import javax.validation.constraints.*;
