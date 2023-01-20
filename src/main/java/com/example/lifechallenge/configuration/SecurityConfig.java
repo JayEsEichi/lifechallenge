@@ -30,6 +30,7 @@ public class SecurityConfig {
                 .authorizeRequests()
                 .antMatchers("/lc/login").permitAll()
                 .antMatchers("/lc/register").permitAll()
+                .antMatchers("/lc/sample/getAddrApi.do").permitAll() // 주소 api 테스트
                 .antMatchers("/lc/test").hasRole("USER")
                 .anyRequest().authenticated()
                 .and()
