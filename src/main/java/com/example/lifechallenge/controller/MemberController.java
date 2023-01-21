@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -50,6 +51,15 @@ public class MemberController {
         log.info("로그인 - 아이디 : {}, 비밀번호 : {}", loginRequestDto.getMember_id(), loginRequestDto.getPassword());
 
         return memberService.memberLogin(response, loginRequestDto);
+    }
+
+
+    // 로그아웃
+    @PostMapping("/logout")
+    public ResponseEntity<ResponseBody> memberLogout(HttpServletRequest request){
+        log.info("로그아웃 - 유저 액세스 토큰 : {}, 유저 정보 : {}", request.getHeader("Authorization"), request.getUserPrincipal());
+
+        return memberService.memberLogout(request);
     }
 
 

@@ -25,4 +25,7 @@ public class Token {
 
     @Column(nullable = false)
     private String refreshToken;
+
+    @Column(nullable = false)
+    private String member_id;
 }

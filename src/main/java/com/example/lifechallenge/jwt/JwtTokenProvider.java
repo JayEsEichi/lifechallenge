@@ -1,16 +1,20 @@
 package com.example.lifechallenge.jwt;
 
 import com.example.lifechallenge.controller.request.TokenDto;
-import com.example.lifechallenge.domain.Token;
+import com.example.lifechallenge.domain.Member;
+import com.example.lifechallenge.domain.UserDetailsImpl;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -21,23 +25,27 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
 
+import static com.example.lifechallenge.domain.QMember.member;
+
 @Slf4j
 @Component
 public class JwtTokenProvider {
 
     private final Key key;
+    private final JPAQueryFactory queryFactory;
 
-    public JwtTokenProvider(@Value("${jwt.secret}") String secretKey) {
+    public JwtTokenProvider(@Value("${jwt.secret}") String secretKey, JPAQueryFactory queryFactory) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
+        this.queryFactory = queryFactory;
     }
 
     // 유저 정보를 가지고 AccessToken, RefreshToken 을 생성하는 메서드
     public TokenDto generateToken(Authentication authentication) {
         // 권한 가져오기
-        String authorities = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
+        //String authorities = authentication.getAuthorities().stream()
+        //        .map(GrantedAuthority::getAuthority)
+        //        .collect(Collectors.joining(","));
 
         long now = (new Date()).getTime();
 
@@ -45,7 +53,7 @@ public class JwtTokenProvider {
         Date accessTokenExpiresIn = new Date(now + 86400000);
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
-                .claim("auth", authorities)
+                .claim("auth", "USER")
                 .setExpiration(accessTokenExpiresIn)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
@@ -69,9 +77,13 @@ public class JwtTokenProvider {
         // 토큰 복호화
         Claims claims = parseClaims(accessToken);
 
+        log.info("클레임 정보 초기값 - {}", claims);
+
         if (claims.get("auth") == null) {
             throw new RuntimeException("권한 정보가 없는 토큰입니다.");
         }
+
+        log.info("클레임 정보 - {}", claims.get("auth"));
 
         // 클레임에서 권한 정보 가져오기
         Collection<? extends GrantedAuthority> authorities =
@@ -82,6 +94,25 @@ public class JwtTokenProvider {
         // UserDetails 객체를 만들어서 Authentication 리턴
         UserDetails principal = new User(claims.getSubject(), "", authorities);
         return new UsernamePasswordAuthenticationToken(principal, "", authorities);
+    }
+
+    public Member getMemberFromAuthentication() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || AnonymousAuthenticationToken.class.
+                isAssignableFrom(authentication.getClass())) {
+            return null;
+        }
+
+        String account_id = ((UserDetails)authentication.getPrincipal()).getUsername();
+
+        log.info("authentication 아이디 - {}",account_id);
+
+        Member auth_member = queryFactory
+                .selectFrom(member)
+                .where(member.member_id.eq(account_id))
+                .fetchOne();
+
+        return auth_member;
     }
 
     // 토큰 정보를 검증하는 메서드
