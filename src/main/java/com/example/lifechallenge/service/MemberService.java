@@ -191,4 +191,40 @@ public class MemberService {
 
         return new ResponseEntity<>(new ResponseBody(StatusCode.OK.getStatusCode(), StatusCode.OK.getStatus(), "로그아웃 되셨습니다."), HttpStatus.OK);
     }
+
+
+    // 회원탈퇴
+    @Transactional
+    public ResponseEntity<ResponseBody> memberUnregister(HttpServletRequest request){
+
+        // request 에서 액세스토큰 정보 추출
+        String refreshToken = request.getHeader("Refresh-Token");
+
+        // 리프레시 토큰 유효성 검사
+        if(!jwtTokenProvider.validateToken(refreshToken)){
+            return new ResponseEntity<>(new ResponseBody(StatusCode.USELESS_TOKEN.getStatusCode(), StatusCode.USELESS_TOKEN.getStatus(), null), HttpStatus.BAD_REQUEST);
+        }
+
+        // Authentication 유효성 검사
+        if(jwtTokenProvider.getMemberFromAuthentication() == null){
+            return new ResponseEntity(new ResponseBody(StatusCode.NOT_EXIST_ACCOUNT.getStatusCode(), StatusCode.NOT_EXIST_ACCOUNT.getStatus(), null), HttpStatus.BAD_REQUEST);
+        }
+
+        Member unregister_member = jwtTokenProvider.getMemberFromAuthentication();
+
+        // 회원탈퇴할 계정의 토큰 삭제
+        queryFactory
+                .delete(token)
+                .where(token.refreshToken.eq(refreshToken))
+                .execute();
+
+        // 회원탈퇴할 계정 삭제
+        queryFactory
+                .delete(member)
+                .where(member.member_id.eq(unregister_member.getMember_id()))
+                .execute();
+
+        return new ResponseEntity<>(new ResponseBody(StatusCode.OK.getStatusCode(), StatusCode.OK.getStatus(), "정상적으로 탈퇴되셨습니다. 이용해주셔서 감사합니다."), HttpStatus.OK);
+    }
+
 }
