@@ -1,7 +1,6 @@
 package com.example.lifechallenge.domain;
 
 import lombok.*;
-
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +28,7 @@ public class Member extends Timestamped {
     @Column(nullable = false)
     private String address;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @Builder.Default
     private List<String> roles = new ArrayList<>();
 

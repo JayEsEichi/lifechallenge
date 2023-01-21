@@ -20,12 +20,17 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import static com.example.lifechallenge.domain.QMember.member;
+import static com.example.lifechallenge.domain.QToken.token;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -70,6 +75,7 @@ public class MemberService {
 
 
     // 로그인
+    @Transactional
     public ResponseEntity<ResponseBody> memberLogin(HttpServletResponse response, LoginRequestDto loginRequestDto){
 
         log.info("로그인 서비스 진입");
@@ -90,6 +96,19 @@ public class MemberService {
                 .selectFrom(member)
                 .where(member.member_id.eq(loginRequestDto.getMember_id()))
                 .fetchOne();
+
+        // 이미 로그인한 계정이라면 존재했던 토큰 삭제
+        if(queryFactory
+                .selectFrom(token)
+                .where(token.member_id.eq(exist_member.getMember_id()))
+                .fetchOne() != null){
+
+            // 존재했던 토큰 삭제
+            queryFactory
+                    .delete(token)
+                    .where(token.member_id.eq(exist_member.getMember_id()))
+                    .execute();
+        }
 
         log.info("존재하는 계정 조회");
 
@@ -129,6 +148,7 @@ public class MemberService {
                 .accessToken(tokenDto.getAccessToken())
                 .refreshToken(tokenDto.getRefreshToken())
                 .grantType(tokenDto.getGrantType())
+                .member_id(exist_member.getMember_id())
                 .build();
 
         log.info("Token에 값이 대입되었음을 확인 - {}", token.getAccessToken());
@@ -147,4 +167,28 @@ public class MemberService {
     }
 
 
+    // 로그아웃
+    @Transactional
+    public ResponseEntity<ResponseBody> memberLogout(HttpServletRequest request){
+
+        // request 에서 액세스토큰 정보 추출
+        String refreshToken = request.getHeader("Refresh-Token");
+
+        // 토큰이 유효한지 유효하지 않은지 확인 후 처리
+        if(!jwtTokenProvider.validateToken(refreshToken)){
+            return new ResponseEntity<>(new ResponseBody(StatusCode.USELESS_TOKEN.getStatusCode(), StatusCode.USELESS_TOKEN.getStatus(), null), HttpStatus.BAD_REQUEST);
+        }
+
+        if(jwtTokenProvider.getMemberFromAuthentication() == null){
+            return new ResponseEntity(new ResponseBody(StatusCode.NOT_EXIST_ACCOUNT.getStatusCode(), StatusCode.NOT_EXIST_ACCOUNT.getStatus(), null), HttpStatus.BAD_REQUEST);
+        }
+
+        // 로그아웃 된 계정의 토큰 삭제
+        queryFactory
+                .delete(token)
+                .where(token.refreshToken.eq(refreshToken))
+                .execute();
+
+        return new ResponseEntity<>(new ResponseBody(StatusCode.OK.getStatusCode(), StatusCode.OK.getStatus(), "로그아웃 되셨습니다."), HttpStatus.OK);
+    }
 }
