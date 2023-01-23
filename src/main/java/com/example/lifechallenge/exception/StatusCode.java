@@ -16,7 +16,8 @@ public enum StatusCode {
     NOT_EXIST_ACCOUNT(454, "존재하지 않는 계정입니다."),
     INCORRECT_PASSWORD(455, "비밀번호를 다시 확인해주십시오."),
     USELESS_TOKEN(456, "유효하지 않은 토큰입니다."),
-    NOT_EXIST_POST_INFO(457, "게시글 작성 데이터가 존재하지 않습니다.");
+    NOT_EXIST_POST_INFO(457, "게시글 작성 데이터가 존재하지 않습니다."),
+    NOT_MATCH_POST_WRITER(458, "게시글 작성자가 아니라서 작업을 처리할 수 없습니다.");
 
 
     private final int statusCode;
