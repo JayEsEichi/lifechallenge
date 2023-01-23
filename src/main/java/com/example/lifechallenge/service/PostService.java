@@ -144,4 +144,32 @@ public class PostService {
         return new ResponseEntity<>(new ResponseBody(StatusCode.OK.getStatusCode(), StatusCode.OK.getStatus(), updatePostInfoSet), HttpStatus.OK);
     }
 
+
+
+    // 게시글 삭제
+    @Transactional
+    public ResponseEntity<ResponseBody> postDelete(HttpServletRequest request, Long post_id){
+
+        // 게시글 작성 유저 정보 불러오기
+        Member auth_member = checkAuthentication(request);
+
+        // 삭제하고자 하는 유저가 게시글의 작성자인지 확인
+        if(queryFactory
+                .selectFrom(post)
+                .where(post.post_id.eq(post_id).and(post.member.eq(auth_member)))
+                .fetchOne() == null){
+            return new ResponseEntity<>(new ResponseBody(StatusCode.NOT_MATCH_POST_WRITER.getStatusCode(),  StatusCode.NOT_MATCH_POST_WRITER.getStatus(), null), HttpStatus.BAD_REQUEST);
+        }
+
+        // 게시글 삭제
+        queryFactory
+                .delete(post)
+                .where(post.post_id.eq(post_id))
+                .execute();
+
+        return new ResponseEntity<>(new ResponseBody(StatusCode.OK.getStatusCode(), StatusCode.OK.getStatus(), "게시글 정상적으로 삭제되었습니다."), HttpStatus.OK);
+    }
+
+
+
 }
