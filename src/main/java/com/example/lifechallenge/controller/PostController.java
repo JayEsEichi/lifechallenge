@@ -35,4 +35,13 @@ public class PostController {
         return postService.postUpdate(request, postRequestDto, post_id);
     }
 
+    // 게시글 삭제
+    @DeleteMapping("/post/delete/{post_id}")
+    public ResponseEntity<ResponseBody> postDelete(HttpServletRequest request, @PathVariable Long post_id){
+        log.info("게시글 삭제 - 삭제 게시글 id : {}", post_id);
+
+        return postService.postDelete(request, post_id);
+    }
+
+
 }
