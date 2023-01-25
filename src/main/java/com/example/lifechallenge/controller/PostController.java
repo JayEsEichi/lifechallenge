@@ -62,4 +62,14 @@ public class PostController {
         return postService.postReadList(request);
     }
 
+
+    // 게시글 좋아요
+    @PostMapping("/post/like/{post_id}")
+    public ResponseEntity<ResponseBody> postLike(HttpServletRequest request, @PathVariable Long post_id){
+        log.info("게시글 좋아요 - 좋아요를 누른 유저 : {}, 좋아요한 게시글 : {}", jwtTokenProvider.getMemberFromAuthentication().getNickname(), post_id);
+
+        return postService.postLike(request, post_id);
+    }
+
+
 }
