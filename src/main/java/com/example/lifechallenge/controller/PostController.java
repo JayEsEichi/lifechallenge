@@ -2,6 +2,7 @@ package com.example.lifechallenge.controller;
 
 import com.example.lifechallenge.controller.request.PostRequestDto;
 import com.example.lifechallenge.controller.response.ResponseBody;
+import com.example.lifechallenge.jwt.JwtTokenProvider;
 import com.example.lifechallenge.service.PostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 public class PostController {
 
     private final PostService postService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     // 게시글 작성
     @PostMapping("/post/write")
@@ -51,5 +53,13 @@ public class PostController {
         return postService.postRead(request, post_id);
     }
 
+
+    // 게시글 전체 목록 조회
+    @GetMapping("/post/readlist")
+    public ResponseEntity<ResponseBody> postReadList(HttpServletRequest request){
+        log.info("게시글 전체 목록 조회 - 접근 유저 : {}", jwtTokenProvider.getMemberFromAuthentication().getNickname());
+
+        return postService.postReadList(request);
+    }
 
 }

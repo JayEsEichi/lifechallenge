@@ -21,7 +21,9 @@ import javax.servlet.http.HttpServletRequest;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import static com.example.lifechallenge.domain.QPost.post;
 
@@ -35,15 +37,15 @@ public class PostService {
     private final EntityManager entityManager;
 
     // 발급된 토큰 및 계정 유효성 검증
-    private Member checkAuthentication(HttpServletRequest request){
+    private Member checkAuthentication(HttpServletRequest request) {
 
         // 리프레시 토큰 유효성 검사
-        if(!jwtTokenProvider.validateToken(request.getHeader("Refresh-Token"))){
+        if (!jwtTokenProvider.validateToken(request.getHeader("Refresh-Token"))) {
             throw new RuntimeException("유효하지 않은 토큰입니다.");
         }
 
         // Authentication 유효성 검사
-        if(jwtTokenProvider.getMemberFromAuthentication() == null){
+        if (jwtTokenProvider.getMemberFromAuthentication() == null) {
             throw new RuntimeException("존재하지 않는 계정입니다.");
         }
 
@@ -54,14 +56,14 @@ public class PostService {
 
 
     // 게시글 작성
-    public ResponseEntity<ResponseBody> postWrite(HttpServletRequest request, PostRequestDto postRequestDto){
+    public ResponseEntity<ResponseBody> postWrite(HttpServletRequest request, PostRequestDto postRequestDto) {
 
         // 게시글 작성 유저 정보 불러오기
         Member auth_member = checkAuthentication(request);
 
         // 게시글 작성 정보는 null일 수 없음.
-        if(postRequestDto.getTitle() == null || postRequestDto.getContent() == null){
-            return new ResponseEntity<>(new ResponseBody(StatusCode.NOT_EXIST_POST_INFO.getStatusCode(),  StatusCode.NOT_EXIST_POST_INFO.getStatus(), null), HttpStatus.BAD_REQUEST);
+        if (postRequestDto.getTitle() == null || postRequestDto.getContent() == null) {
+            return new ResponseEntity<>(new ResponseBody(StatusCode.NOT_EXIST_POST_INFO.getStatusCode(), StatusCode.NOT_EXIST_POST_INFO.getStatus(), null), HttpStatus.BAD_REQUEST);
         }
 
         // 게시글 내용 정보들 build
@@ -87,28 +89,28 @@ public class PostService {
         postInfoSet.put("createdAt", post.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd hh:mm"))); // 게시글 작성일자
         postInfoSet.put("modifiedAt", post.getModifiedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd hh:mm"))); // 게시글 수정일자
 
-        return new ResponseEntity<>(new ResponseBody(StatusCode.OK.getStatusCode(),  StatusCode.OK.getStatus(), postInfoSet), HttpStatus.OK);
+        return new ResponseEntity<>(new ResponseBody(StatusCode.OK.getStatusCode(), StatusCode.OK.getStatus(), postInfoSet), HttpStatus.OK);
     }
 
 
     // 게시글 수정
     @Transactional
-    public ResponseEntity<ResponseBody> postUpdate(HttpServletRequest request, PostRequestDto postRequestDto, Long post_id){
+    public ResponseEntity<ResponseBody> postUpdate(HttpServletRequest request, PostRequestDto postRequestDto, Long post_id) {
 
         // 게시글 작성 유저 정보 불러오기
         Member auth_member = checkAuthentication(request);
 
         // 게시글 작성 정보는 null일 수 없음
-        if(postRequestDto.getTitle() == null || postRequestDto.getContent() == null){
-            return new ResponseEntity<>(new ResponseBody(StatusCode.NOT_EXIST_POST_INFO.getStatusCode(),  StatusCode.NOT_EXIST_POST_INFO.getStatus(), null), HttpStatus.BAD_REQUEST);
+        if (postRequestDto.getTitle() == null || postRequestDto.getContent() == null) {
+            return new ResponseEntity<>(new ResponseBody(StatusCode.NOT_EXIST_POST_INFO.getStatusCode(), StatusCode.NOT_EXIST_POST_INFO.getStatus(), null), HttpStatus.BAD_REQUEST);
         }
 
         // 수정하고자 하는 유저가 해당 게시글을 작성한 유저가 맞는지 확인
-        if(queryFactory
+        if (queryFactory
                 .selectFrom(post)
                 .where(post.post_id.eq(post_id).and(post.member.eq(auth_member)))
-                .fetchOne() == null){
-            return new ResponseEntity<>(new ResponseBody(StatusCode.NOT_MATCH_POST_WRITER.getStatusCode(),  StatusCode.NOT_MATCH_POST_WRITER.getStatus(), null), HttpStatus.BAD_REQUEST);
+                .fetchOne() == null) {
+            return new ResponseEntity<>(new ResponseBody(StatusCode.NOT_MATCH_POST_WRITER.getStatusCode(), StatusCode.NOT_MATCH_POST_WRITER.getStatus(), null), HttpStatus.BAD_REQUEST);
         }
 
         // 게시글 수정
@@ -146,20 +148,19 @@ public class PostService {
     }
 
 
-
     // 게시글 삭제
     @Transactional
-    public ResponseEntity<ResponseBody> postDelete(HttpServletRequest request, Long post_id){
+    public ResponseEntity<ResponseBody> postDelete(HttpServletRequest request, Long post_id) {
 
         // 게시글 작성 유저 정보 불러오기
         Member auth_member = checkAuthentication(request);
 
         // 삭제하고자 하는 유저가 게시글의 작성자인지 확인
-        if(queryFactory
+        if (queryFactory
                 .selectFrom(post)
                 .where(post.post_id.eq(post_id).and(post.member.eq(auth_member)))
-                .fetchOne() == null){
-            return new ResponseEntity<>(new ResponseBody(StatusCode.NOT_MATCH_POST_WRITER.getStatusCode(),  StatusCode.NOT_MATCH_POST_WRITER.getStatus(), null), HttpStatus.BAD_REQUEST);
+                .fetchOne() == null) {
+            return new ResponseEntity<>(new ResponseBody(StatusCode.NOT_MATCH_POST_WRITER.getStatusCode(), StatusCode.NOT_MATCH_POST_WRITER.getStatus(), null), HttpStatus.BAD_REQUEST);
         }
 
         // 게시글 삭제
@@ -174,17 +175,17 @@ public class PostService {
 
     // 게시글 조회
     @Transactional
-    public ResponseEntity<ResponseBody> postRead(HttpServletRequest request, Long post_id){
+    public ResponseEntity<ResponseBody> postRead(HttpServletRequest request, Long post_id) {
 
         // 유저 검증
         Member auth_member = checkAuthentication(request);
 
         // 조회하고자 하는 게시글 조회
-        if(queryFactory
+        if (queryFactory
                 .selectFrom(post)
                 .where(post.post_id.eq(post_id))
-                .fetchOne() == null){
-            return new ResponseEntity<>(new ResponseBody(StatusCode.NOT_EXIST_POST_INFO.getStatusCode(),  StatusCode.NOT_EXIST_POST_INFO.getStatus(), null), HttpStatus.BAD_REQUEST);
+                .fetchOne() == null) {
+            return new ResponseEntity<>(new ResponseBody(StatusCode.NOT_EXIST_POST_INFO.getStatusCode(), StatusCode.NOT_EXIST_POST_INFO.getStatus(), null), HttpStatus.BAD_REQUEST);
         }
 
         // 게시글 정보 불러오기
@@ -218,5 +219,39 @@ public class PostService {
         return new ResponseEntity<>(new ResponseBody(StatusCode.OK.getStatusCode(), StatusCode.OK.getStatus(), postResponseDto), HttpStatus.OK);
     }
 
+
+    // 게시글 전체 목록 조회
+    public ResponseEntity<ResponseBody> postReadList(HttpServletRequest request) {
+
+        // 유저 검증
+        Member auth_member = checkAuthentication(request);
+
+        // 작성된 모든 게시글 리스트화
+        List<Post> postList = queryFactory
+                .selectFrom(post)
+                .fetch();
+
+        // 최종적으로 리스트화된 게시글들이 반환될 List
+        List<HashMap<String, String>> postListSet = new ArrayList<>();
+
+        // 전체 게시글들을 하나씩 조회
+        for(Post each_post : postList){
+
+            // HashMap으로 조회된 게시글 일부 정보가 담김
+            HashMap<String, String> postSet = new HashMap<>();
+
+            postSet.put("post_id", each_post.getPost_id().toString()); // 게시글 id
+            postSet.put("title", each_post.getTitle()); // 게시글 제목
+            postSet.put("nickname", each_post.getMember().getNickname()); // 게시글 작성자 닉네임
+            postSet.put("viewcnt", each_post.getViewcnt().toString()); // 게시글 조회수
+            postSet.put("createdAt", each_post.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd hh:mm"))); // 게시글 생성일자
+
+            // 최종 반환 리스트에 담음
+            postListSet.add(postSet);
+
+        }
+
+        return new ResponseEntity<>(new ResponseBody(StatusCode.OK.getStatusCode(), StatusCode.OK.getStatus(), postListSet), HttpStatus.OK);
+    }
 
 }
