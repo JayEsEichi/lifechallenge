@@ -43,5 +43,13 @@ public class PostController {
         return postService.postDelete(request, post_id);
     }
 
+    // 게시글 조회
+    @GetMapping("/post/read/{post_id}")
+    public ResponseEntity<ResponseBody> postRead(HttpServletRequest request, @PathVariable Long post_id){
+        log.info("게시글 조회 - 조회 게시글 : {}", post_id);
+
+        return postService.postRead(request, post_id);
+    }
+
 
 }

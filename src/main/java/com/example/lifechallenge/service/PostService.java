@@ -2,6 +2,7 @@ package com.example.lifechallenge.service;
 
 import com.example.lifechallenge.controller.request.PostRequestDto;
 
+import com.example.lifechallenge.controller.response.PostResponseDto;
 import com.example.lifechallenge.controller.response.ResponseBody;
 import com.example.lifechallenge.domain.Member;
 import com.example.lifechallenge.domain.Post;
@@ -170,6 +171,52 @@ public class PostService {
         return new ResponseEntity<>(new ResponseBody(StatusCode.OK.getStatusCode(), StatusCode.OK.getStatus(), "게시글 정상적으로 삭제되었습니다."), HttpStatus.OK);
     }
 
+
+    // 게시글 조회
+    @Transactional
+    public ResponseEntity<ResponseBody> postRead(HttpServletRequest request, Long post_id){
+
+        // 유저 검증
+        Member auth_member = checkAuthentication(request);
+
+        // 조회하고자 하는 게시글 조회
+        if(queryFactory
+                .selectFrom(post)
+                .where(post.post_id.eq(post_id))
+                .fetchOne() == null){
+            return new ResponseEntity<>(new ResponseBody(StatusCode.NOT_EXIST_POST_INFO.getStatusCode(),  StatusCode.NOT_EXIST_POST_INFO.getStatus(), null), HttpStatus.BAD_REQUEST);
+        }
+
+        // 게시글 정보 불러오기
+        Post read_post = queryFactory
+                .selectFrom(post)
+                .where(post.post_id.eq(post_id))
+                .fetchOne();
+
+        // 게시글 조회 수 업데이트
+        queryFactory
+                .update(post)
+                .set(post.viewcnt, read_post.getViewcnt() + 1)
+                .where(post.post_id.eq(post_id))
+                .execute();
+
+        entityManager.flush();
+        entityManager.clear();
+
+
+        // 조회하고자 하는 게시글의 정보들
+        PostResponseDto postResponseDto = PostResponseDto.builder()
+                .title(read_post.getTitle()) // 게시글 제목
+                .content(read_post.getContent()) // 게시글 내용
+                .nickname(read_post.getMember().getNickname()) // 게시글 작성자
+                .createdAt(read_post.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd hh:mm"))) // 게시글 생성일자
+                .viewcnt(read_post.getViewcnt()) // 게시글 조회 수
+                .likecnt(read_post.getLikecnt()) // 게시글 좋아요 수
+                .build();
+
+
+        return new ResponseEntity<>(new ResponseBody(StatusCode.OK.getStatusCode(), StatusCode.OK.getStatus(), postResponseDto), HttpStatus.OK);
+    }
 
 
 }
