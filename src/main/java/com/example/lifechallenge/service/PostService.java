@@ -5,9 +5,11 @@ import com.example.lifechallenge.controller.request.PostRequestDto;
 import com.example.lifechallenge.controller.response.PostResponseDto;
 import com.example.lifechallenge.controller.response.ResponseBody;
 import com.example.lifechallenge.domain.Member;
+import com.example.lifechallenge.domain.MemberLikePost;
 import com.example.lifechallenge.domain.Post;
 import com.example.lifechallenge.exception.StatusCode;
 import com.example.lifechallenge.jwt.JwtTokenProvider;
+import com.example.lifechallenge.repository.MemberLIkePostRepository;
 import com.example.lifechallenge.repository.PostRepository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import static com.example.lifechallenge.domain.QPost.post;
+import static com.example.lifechallenge.domain.QMemberLikePost.memberLikePost;
 
 @RequiredArgsConstructor
 @Service
@@ -34,6 +37,7 @@ public class PostService {
     private final JwtTokenProvider jwtTokenProvider;
     private final JPAQueryFactory queryFactory;
     private final PostRepository postRepository;
+    private final MemberLIkePostRepository memberLIkePostRepository;
     private final EntityManager entityManager;
 
     // 발급된 토큰 및 계정 유효성 검증
@@ -254,4 +258,63 @@ public class PostService {
         return new ResponseEntity<>(new ResponseBody(StatusCode.OK.getStatusCode(), StatusCode.OK.getStatus(), postListSet), HttpStatus.OK);
     }
 
+
+    // 게시글 좋아요
+    @Transactional
+    public ResponseEntity<ResponseBody> postLike(HttpServletRequest request, Long post_id){
+
+        // 유저 검증
+        Member auth_member = checkAuthentication(request);
+
+        // 좋아요할 게시글 조회
+        Post like_post = queryFactory
+                .selectFrom(post)
+                .where(post.post_id.eq(post_id))
+                .fetchOne();
+
+        // 좋아요가 되었는지 좋아요가 취소되었는지 알기위한 알림 문구
+        String notice = "";
+
+        // 좋아요할 게시글에 이미 좋아요 처리가 되어있는지 확인
+        if(queryFactory
+                .selectFrom(memberLikePost)
+                .where(memberLikePost.member.eq(auth_member).and(memberLikePost.post.eq(like_post)))
+                .fetchOne() != null){
+            // 좋아요가 이미 되어있을 경우 MemberLikePost 에서 좋아요 삭제처리
+            queryFactory
+                    .delete(memberLikePost)
+                    .where(memberLikePost.member.eq(auth_member).and(memberLikePost.post.eq(like_post)))
+                    .execute();
+
+            // 좋아요 취소 시 notice에 문구 반영
+            notice = "좋아요 취소";
+        }else{
+            // 유저가 게시글에 좋아요한 이력 저장
+            MemberLikePost likepost = MemberLikePost.builder()
+                    .post(like_post)
+                    .member(auth_member)
+                    .build();
+
+            memberLIkePostRepository.save(likepost);
+
+            // 좋아요 시 notica에 문구 반영
+            notice = "좋아요";
+        }
+
+        // 해당 게시글좋아요 수
+        Long likeCnt = queryFactory
+                .select(memberLikePost.count())
+                .from(memberLikePost)
+                .where(memberLikePost.post.eq(like_post))
+                .fetchOne();
+
+        // 게시글 likecnt 정보 업데이트
+        queryFactory
+                .update(post)
+                .set(post.likecnt, Integer.parseInt(likeCnt.toString()))
+                .where(post.post_id.eq(like_post.getPost_id()))
+                .execute();
+
+        return new ResponseEntity<>(new ResponseBody<>(StatusCode.OK.getStatusCode(), StatusCode.OK.getStatus(), notice), HttpStatus.OK);
+    }
 }

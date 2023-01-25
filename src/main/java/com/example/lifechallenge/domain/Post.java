@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Builder
 @Getter
@@ -32,8 +33,12 @@ public class Post extends Timestamped{
     private Integer likecnt;
 
     @JsonIgnore
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_pk_id")
     @ManyToOne(fetch = FetchType.LAZY)
     private Member member;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MemberLikePost> likePosts;
 
 }
