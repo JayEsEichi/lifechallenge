@@ -2,8 +2,10 @@ package com.example.lifechallenge.service;
 
 import com.example.lifechallenge.controller.request.PostRequestDto;
 
+import com.example.lifechallenge.controller.response.CommentResponseDto;
 import com.example.lifechallenge.controller.response.PostResponseDto;
 import com.example.lifechallenge.controller.response.ResponseBody;
+import com.example.lifechallenge.domain.Comment;
 import com.example.lifechallenge.domain.Member;
 import com.example.lifechallenge.domain.MemberLikePost;
 import com.example.lifechallenge.domain.Post;
@@ -29,6 +31,7 @@ import java.util.List;
 
 import static com.example.lifechallenge.domain.QPost.post;
 import static com.example.lifechallenge.domain.QMemberLikePost.memberLikePost;
+import static com.example.lifechallenge.domain.QComment.comment;
 
 @RequiredArgsConstructor
 @Service
@@ -208,6 +211,34 @@ public class PostService {
         entityManager.flush();
         entityManager.clear();
 
+        // 댓글들 내용이 담길 Dto
+        List<CommentResponseDto> commentResponseDtos = new ArrayList<>();
+
+        // 조회하고자 하는 게시글에 댓글들이 존재한다면 댓글들도 같이 출력
+        if(queryFactory
+                .selectFrom(comment)
+                .where(comment.post.eq(read_post))
+                .fetch() != null){
+
+            // 게시글에 존재하는 댓글들 List
+            List<Comment> comments = queryFactory
+                    .selectFrom(comment)
+                    .where(comment.post.eq(read_post))
+                    .fetch();
+
+            // 존재하는 댓글 하나씩 조회하면서 Dto에 담기
+            for(Comment each_comment : comments){
+                commentResponseDtos.add(CommentResponseDto.builder()
+                        .content(each_comment.getContent())
+                        .nickname(each_comment.getNickname())
+                        .createdAt(each_comment.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd hh:mm")))
+                        .modifiedAt(each_comment.getModifiedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd hh:mm")))
+                        .build()
+                );
+            }
+
+        }
+
 
         // 조회하고자 하는 게시글의 정보들
         PostResponseDto postResponseDto = PostResponseDto.builder()
@@ -217,6 +248,7 @@ public class PostService {
                 .createdAt(read_post.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd hh:mm"))) // 게시글 생성일자
                 .viewcnt(read_post.getViewcnt()) // 게시글 조회 수
                 .likecnt(read_post.getLikecnt()) // 게시글 좋아요 수
+                .comments(commentResponseDtos) // 게시글에 존재하는 댓글들
                 .build();
 
 
