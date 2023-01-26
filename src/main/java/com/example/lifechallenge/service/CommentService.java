@@ -136,4 +136,29 @@ public class CommentService {
 
         return new ResponseEntity<>(new ResponseBody(StatusCode.OK.getStatusCode(), StatusCode.OK.getStatus(), commentResponseDto), HttpStatus.OK);
     }
+
+
+    // 댓글 삭제
+    @Transactional
+    public ResponseEntity<ResponseBody> commentDelete(HttpServletRequest request, Long comment_id){
+
+        // 유저 검증
+        Member auth_member = checkAuthentication(request);
+
+        // 댓글 작성자가 아니라면 댓글을 삭제할 수 없음.
+        if(queryFactory
+                .selectFrom(comment)
+                .where(comment.comment_id.eq(comment_id).and(comment.nickname.eq(auth_member.getNickname())))
+                .fetchOne() == null){
+            return new ResponseEntity<>(new ResponseBody(StatusCode.NOT_MATCH_COMMENT_WRITER.getStatusCode(), StatusCode.NOT_MATCH_COMMENT_WRITER.getStatus(), null), HttpStatus.BAD_REQUEST);
+        }
+
+        // 댓글 삭제 처리
+        queryFactory
+                .delete(comment)
+                .where(comment.comment_id.eq(comment_id))
+                .execute();
+
+        return new ResponseEntity<>(new ResponseBody(StatusCode.OK.getStatusCode(), StatusCode.OK.getStatus(), "댓글이 삭제 되었습니다."), HttpStatus.OK);
+    }
 }
