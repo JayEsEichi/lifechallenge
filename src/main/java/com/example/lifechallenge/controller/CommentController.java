@@ -27,4 +27,13 @@ public class CommentController {
 
         return commentService.commentWrite(request, commentRequestDto, post_id);
     }
+
+
+    // 댓글 수정
+    @PutMapping("/comment/update/{comment_id}")
+    public ResponseEntity<ResponseBody> commentUpdate(HttpServletRequest request, @RequestBody CommentRequestDto commentRequestDto, @PathVariable Long comment_id){
+        log.info("댓글 수정 - 댓글 수정 유저 : {}, 댓글 수정 내용 일부분 : {}", jwtTokenProvider.getMemberFromAuthentication().getNickname(), commentRequestDto.getContent().substring(0,5));
+
+        return commentService.commentUpdate(request, commentRequestDto, comment_id);
+    }
 }
