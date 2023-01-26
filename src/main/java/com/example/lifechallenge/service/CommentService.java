@@ -1,6 +1,7 @@
 package com.example.lifechallenge.service;
 
 import com.example.lifechallenge.controller.request.CommentRequestDto;
+import com.example.lifechallenge.controller.response.CommentResponseDto;
 import com.example.lifechallenge.controller.response.ResponseBody;
 import com.example.lifechallenge.domain.Comment;
 import com.example.lifechallenge.domain.Member;
@@ -13,9 +14,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 
@@ -29,6 +33,8 @@ public class CommentService {
     private final JwtTokenProvider jwtTokenProvider;
     private final JPAQueryFactory queryFactory;
     private final CommentRepository commentRepository;
+    private final EntityManager entityManager;
+
 
     // 발급된 토큰 및 계정 유효성 검증
     private Member checkAuthentication(HttpServletRequest request) {
@@ -81,5 +87,53 @@ public class CommentService {
         commentSet.put("modifiedAt", write_comment.getModifiedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd hh:mm"))); // 댓글 수정일자
 
         return new ResponseEntity<>(new ResponseBody(StatusCode.OK.getStatusCode(), StatusCode.OK.getStatus(), commentSet), HttpStatus.OK);
+    }
+
+
+    // 댓글 수정
+    @Transactional
+    public ResponseEntity<ResponseBody> commentUpdate(HttpServletRequest request, CommentRequestDto commentRequestDto, Long comment_id){
+
+        // 유저 검증
+        Member auth_member = checkAuthentication(request);
+
+        // 댓글 작성자가 아니라면 댓글을 수정할 수 없음.
+        if(queryFactory
+                .selectFrom(comment)
+                .where(comment.comment_id.eq(comment_id).and(comment.nickname.eq(auth_member.getNickname())))
+                .fetchOne() == null){
+            return new ResponseEntity<>(new ResponseBody(StatusCode.NOT_MATCH_COMMENT_WRITER.getStatusCode(), StatusCode.NOT_MATCH_COMMENT_WRITER.getStatus(), null), HttpStatus.BAD_REQUEST);
+        }
+
+        // 댓글 수정
+        queryFactory
+                .update(comment)
+                .set(comment.content, commentRequestDto.getContent())
+                .set(comment.modifiedAt, LocalDateTime.now())
+                .where(comment.comment_id.eq(comment_id))
+                .execute();
+
+
+        entityManager.flush(); // 실제 DB에 수정 사항 반영
+        entityManager.clear(); // 반영 후 남은 잔여 데이터 비워주기
+
+
+        // 수정된 댓글 불러오기
+        Comment update_comment = queryFactory
+                .selectFrom(comment)
+                .where(comment.comment_id.eq(comment_id))
+                .fetchOne();
+
+
+        // Dto에 불러온 댓글 정보 담기
+        CommentResponseDto commentResponseDto = CommentResponseDto.builder()
+                .content(update_comment.getContent())
+                .nickname(update_comment.getNickname())
+                .createdAt(update_comment.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd hh:mm")))
+                .modifiedAt(update_comment.getModifiedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd hh:mm")))
+                .build();
+
+
+        return new ResponseEntity<>(new ResponseBody(StatusCode.OK.getStatusCode(), StatusCode.OK.getStatus(), commentResponseDto), HttpStatus.OK);
     }
 }
