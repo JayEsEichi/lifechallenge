@@ -28,13 +28,13 @@ public class SecurityConfig {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/static/js/**",
-                        "/static/css/**",
-                        "/static/assets/**").permitAll()
+                .antMatchers("/js/**",
+                        "/css/**",
+                        "/assets/**").permitAll()
                 .antMatchers("/lc/login").permitAll()
                 .antMatchers("/lc/register").permitAll()
                 .antMatchers("/lc/sample/getAddrApi.do").permitAll() // 주소 api 테스트
-                .antMatchers("/lc/home").permitAll()
+                .antMatchers("/home").permitAll()
                 .antMatchers("/lc/test").hasRole("USER")
                 .anyRequest().authenticated()
                 .and()
