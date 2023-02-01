@@ -8,13 +8,11 @@ class LifechallengeApplicationTests {
 
     @Test
     void contextLoads() {
-        String str1 = new String("test");
-        String str2 = new String("test");
+        StringBuffer sb = new StringBuffer("test");
+        System.out.println(sb + " " + System.identityHashCode(sb)); //문자열과 메모리 주소 출력
 
-        String s1 = "testing";
-        String s2 = "testing";
-
-        System.out.println(s1.equals(s2));
+        sb.append("2"); // 문자열 추가
+        System.out.println(sb + " " + System.identityHashCode(sb)); //문자열과 메모리 주소 출력
     }
 
 

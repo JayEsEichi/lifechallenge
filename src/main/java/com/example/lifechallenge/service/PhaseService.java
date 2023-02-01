@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 
 @RequiredArgsConstructor
 @Service
@@ -43,7 +44,7 @@ public class PhaseService {
         // 유저 검증
         Member auth_member = checkAuthentication(request);
 
-
+        ArrayList arl = new ArrayList();
 
 
 

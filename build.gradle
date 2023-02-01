@@ -52,6 +52,9 @@ dependencies {
 
     // lombok validation
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // java 인스턴스를 json 형식의 문자열로 변환
+    implementation 'com.google.code.gson:gson:2.8.9'
 }
 
 tasks.named('test') {
