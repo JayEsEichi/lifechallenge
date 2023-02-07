@@ -2,7 +2,6 @@ package com.example.lifechallenge.jwt;
 
 import com.example.lifechallenge.controller.request.TokenDto;
 import com.example.lifechallenge.domain.Member;
-import com.example.lifechallenge.domain.UserDetailsImpl;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
