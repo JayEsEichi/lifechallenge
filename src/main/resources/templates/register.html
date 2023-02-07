@@ -16,6 +16,117 @@
           type="text/css"/>
     <!-- Core theme CSS (includes Bootstrap)-->
     <link href="/css/styles.css" rel="stylesheet"/>
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script>
+        function getAddrLoc(){
+            var keyword = $("#keyword").val();
+
+            // 적용예 (api 호출 전에 검색어 체크)
+            if (!checkSearchedWord(keyword, $("#keyword").val().length)) {
+                return ;
+            }
+
+            $.ajax({
+                url :"/sample/getAddrApi.do"
+                ,type:"post"
+                ,data:$("#form").serialize()
+                ,dataType:"json"
+                ,success:function(jsonStr){
+                    $("#list").html("");
+                    var errCode = jsonStr.results.common.errorCode;
+                    var errDesc = jsonStr.results.common.errorMessage;
+                    if(errCode != "0"){
+                        alert(errCode+"="+errDesc);
+                    }else{
+                        if(jsonStr != null){
+                            makeListJson(jsonStr);
+                        }
+                    }
+                }
+                ,error: function(xhr, status, error){
+                    alert("에러발생");
+                }
+            });
+        }
+
+        function makeListJson(jsonStr){
+            var htmlStr = "";
+            htmlStr += "<table>";
+            $(jsonStr.results.juso).each(function(){
+                htmlStr += "<tr>";
+                htmlStr += "<td>"+this.roadAddr+"</td>";
+                htmlStr += "<td>"+this.roadAddrPart1+"</td>";
+                htmlStr += "<td>"+this.roadAddrPart2+"</td>";
+                htmlStr += "<td>"+this.jibunAddr+"</td>";
+                htmlStr += "<td>"+this.engAddr+"</td>";
+                htmlStr += "<td>"+this.zipNo+"</td>";
+                htmlStr += "<td>"+this.admCd+"</td>";
+                htmlStr += "<td>"+this.rnMgtSn+"</td>";
+                htmlStr += "<td>"+this.bdMgtSn+"</td>";
+                htmlStr += "<td>"+this.detBdNmList+"</td>";
+                /** API 서비스 제공항목 확대 (2017.02) **/
+                htmlStr += "<td>"+this.bdNm+"</td>";
+                htmlStr += "<td>"+this.bdKdcd+"</td>";
+                htmlStr += "<td>"+this.siNm+"</td>";
+                htmlStr += "<td>"+this.sggNm+"</td>";
+                htmlStr += "<td>"+this.emdNm+"</td>";
+                htmlStr += "<td>"+this.liNm+"</td>";
+                htmlStr += "<td>"+this.rn+"</td>";
+                htmlStr += "<td>"+this.udrtYn+"</td>";
+                htmlStr += "<td>"+this.buldMnnm+"</td>";
+                htmlStr += "<td>"+this.buldSlno+"</td>";
+                htmlStr += "<td>"+this.mtYn+"</td>";
+                htmlStr += "<td>"+this.lnbrMnnm+"</td>";
+                htmlStr += "<td>"+this.lnbrSlno+"</td>";
+                htmlStr += "<td>"+this.emdNo+"</td>";
+                htmlStr += "</tr>";
+            });
+            htmlStr += "</table>";
+            $("#list").html(htmlStr);
+        }
+
+        //특수문자, 특정문자열(sql예약어의 앞뒤공백포함) 제거
+        function checkSearchedWord(input_keyword, keyword_length){
+            const keyword = input_keyword;
+
+            if(keyword_length >0){
+                //특수문자 제거
+                var expText = /[%=><]/ ;
+                if(expText.test(keyword.value) == true){
+                    alert("특수문자를 입력 할수 없습니다.") ;
+                    keyword.value = keyword.value.split(expText).join("");
+                    return false;
+                }
+
+                //특정문자열(sql예약어의 앞뒤공백포함) 제거
+                var sqlArray = new Array(
+                    //sql 예약어
+                    "OR", "SELECT", "INSERT", "DELETE", "UPDATE", "CREATE", "DROP", "EXEC",
+                    "UNION",  "FETCH", "DECLARE", "TRUNCATE"
+                );
+
+                var regex;
+                for(var i=0; i<sqlArray.length; i++){
+                    regex = new RegExp( sqlArray[i] ,"gi") ;
+
+                    if (regex.test(keyword.value) ) {
+                        alert("\"" + sqlArray[i]+"\"와(과) 같은 특정문자로 검색할 수 없습니다.");
+                        keyword.value =keyword.value.replace(regex, "");
+                        return false;
+                    }
+                }
+            }
+            return true ;
+        }
+
+        function enterSearch() {
+            var evt_code = (window.netscape) ? ev.which : Event.keyCode;
+            if (evt_code == 13) {
+                Event.keyCode = 0;
+                getAddrLoc();
+            }
+        }
+    </script>
 </head>
 <body>
 <!-- Navigation-->
@@ -35,7 +146,7 @@
             <div class="col-xl-6">
                 <div class="text-center text-white">
                     <!-- Page heading-->
-                    <h1 class="mb-5">회원가입</h1>
+                    <h1 class="mb-5">Register page</h1>
 
                     <form class="form-subscribe" id="contactForm" data-sb-form-api-token="API_TOKEN">
                         <!-- Email address input-->
@@ -83,27 +194,79 @@
 <section class="features-icons bg-light text-center">
     <div class="container">
         <div class="row">
-            <div class="col-lg-4">
-                <div class="features-icons-item mx-auto mb-5 mb-lg-0 mb-lg-3">
-                    <div class="features-icons-icon d-flex"><i class="bi-window m-auto text-primary"></i></div>
-                    <h3>Fully Responsive</h3>
-                    <p class="lead mb-0">This theme will look great on any device, no matter the size!</p>
+            <form class="row g-3">
+                <div class="col-md-6">
+                    <label for="inputEmail4" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="inputEmail4">
                 </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="features-icons-item mx-auto mb-5 mb-lg-0 mb-lg-3">
-                    <div class="features-icons-icon d-flex"><i class="bi-layers m-auto text-primary"></i></div>
-                    <h3>Bootstrap 5 Ready</h3>
-                    <p class="lead mb-0">Featuring the latest build of the new Bootstrap 5 framework!</p>
+                <div class="col-md-6">
+                    <label for="inputPassword4" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="inputPassword4">
                 </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="features-icons-item mx-auto mb-0 mb-lg-3">
-                    <div class="features-icons-icon d-flex"><i class="bi-terminal m-auto text-primary"></i></div>
-                    <h3>Easy to Use</h3>
-                    <p class="lead mb-0">Ready to use with your own content, or customize the source files!</p>
+                <div class="col-12">
+                    <label for="inputAddress" class="form-label">Address</label>
+                    <input type="text" class="form-control" id="inputAddress" placeholder="1234 Main St">
                 </div>
-            </div>
+                <div class="col-12">
+                    <label for="inputAddress2" class="form-label">Address 2</label>
+                    <input type="text" class="form-control" id="inputAddress2" placeholder="Apartment, studio, or floor">
+                </div>
+                <form name="form" id="form"method="post">
+                    <input type="text" name="currentPage" value="1"/> <!-- 요청 변수 설정 (현재 페이지. currentPage : n > 0) -->
+                    <input type="text" name="countPerPage" value="10"/><!-- 요청 변수 설정 (페이지당 출력 개수. countPerPage 범위 : 0 < n <= 100) -->
+                    <input type="text" name="resultType" value="json"/> <!-- 요청 변수 설정 (검색결과형식 설정, json) -->
+                    <input type="text" name="keyword" id="keyword" value="" onkeydown="enterSearch();"/><!-- 요청 변수 설정 (키워드) -->
+                    <input type="button" onClick="getAddrLoc();" value="주소검색하기"/>
+                    <div id="list" ></div><!-- 검색 결과 리스트 출력 영역 -->
+                </form>
+<!--                <div class="col-md-6">-->
+<!--                    <label for="inputCity" class="form-label">City</label>-->
+<!--                    <input type="text" class="form-control" id="inputCity">-->
+<!--                </div>-->
+<!--                <div class="col-md-4">-->
+<!--                    <label for="inputState" class="form-label">State</label>-->
+<!--                    <select id="inputState" class="form-select">-->
+<!--                        <option selected>Choose...</option>-->
+<!--                        <option>...</option>-->
+<!--                    </select>-->
+<!--                </div>-->
+<!--                <div class="col-md-2">-->
+<!--                    <label for="inputZip" class="form-label">Zip</label>-->
+<!--                    <input type="text" class="form-control" id="inputZip">-->
+<!--                </div>-->
+                <div class="col-12">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="gridCheck">
+                        <label class="form-check-label" for="gridCheck">
+                            Check me out
+                        </label>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Sign in</button>
+                </div>
+            </form>
+<!--            <div class="col-lg-4">-->
+<!--                <div class="features-icons-item mx-auto mb-5 mb-lg-0 mb-lg-3">-->
+<!--                    <div class="features-icons-icon d-flex"><i class="bi-window m-auto text-primary"></i></div>-->
+<!--                    <h3>Fully Responsive</h3>-->
+<!--                    <p class="lead mb-0">This theme will look great on any device, no matter the size!</p>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--            <div class="col-lg-4">-->
+<!--                <div class="features-icons-item mx-auto mb-5 mb-lg-0 mb-lg-3">-->
+<!--                    <div class="features-icons-icon d-flex"><i class="bi-layers m-auto text-primary"></i></div>-->
+<!--                    <h3>Bootstrap 5 Ready</h3>-->
+<!--                    <p class="lead mb-0">Featuring the latest build of the new Bootstrap 5 framework!</p>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--            <div class="col-lg-4">-->
+<!--                <div class="features-icons-item mx-auto mb-0 mb-lg-3">-->
+<!--                    <div class="features-icons-icon d-flex"><i class="bi-terminal m-auto text-primary"></i></div>-->
+<!--                    <h3>Easy to Use</h3>-->
+<!--                    <p class="lead mb-0">Ready to use with your own content, or customize the source files!</p>-->
+<!--                </div>-->
+<!--            </div>-->
         </div>
     </div>
 </section>
@@ -111,6 +274,7 @@
 <section class="showcase">
     <div class="container-fluid p-0">
         <div class="row g-0">
+
             <div class="col-lg-6 order-lg-2 text-white showcase-img"
                  style="background-image: url('/assets/img/bg-showcase-1.jpg')"></div>
             <div class="col-lg-6 order-lg-1 my-auto showcase-text">
