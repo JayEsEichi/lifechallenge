@@ -55,6 +55,20 @@ dependencies {
 
     // java 인스턴스를 json 형식의 문자열로 변환
     implementation 'com.google.code.gson:gson:2.8.9'
+
+    // 웹 소켓
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+    // sockjs
+    implementation 'org.webjars:sockjs-client:1.0.2'
+
+    // stomp
+    implementation 'org.webjars:stomp-websocket:2.3.3'
+
+    implementation 'org.webjars:webjars-locator-core'
+    implementation 'org.webjars:bootstrap:3.4.0'
+    implementation 'org.webjars:jquery:3.6.2'
+
 }
 
 tasks.named('test') {

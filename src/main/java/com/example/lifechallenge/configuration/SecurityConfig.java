@@ -33,8 +33,10 @@ public class SecurityConfig {
                         "/assets/**").permitAll()
                 .antMatchers("/lc/login").permitAll()
                 .antMatchers("/lc/register").permitAll()
+                .antMatchers("/hello").permitAll()
+                .antMatchers("/gs-guide-websocket/**").permitAll()
                 .antMatchers("/lc/sample/getAddrApi.do").permitAll() // 주소 api 테스트
-                .antMatchers("/home","/login","/regist", "/post").permitAll()
+                .antMatchers("/home","/login","/regist", "/post", "/chat").permitAll()
                 .antMatchers("/lc/test").hasRole("USER")
                 .anyRequest().authenticated()
                 .and()

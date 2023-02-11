@@ -34,5 +34,10 @@ public class PageController {
         return "post";
     }
 
+    // 게시판 페이지 이동
+    @GetMapping("/chat")
+    public String moveChatPage(){
 
+        return "chat";
+    }
 }
