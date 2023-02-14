@@ -34,10 +34,11 @@ public class SecurityConfig {
                 .antMatchers("/lc/login").permitAll()
                 .antMatchers("/lc/register").permitAll()
                 .antMatchers("/lc/sample/getAddrApi.do").permitAll() // 주소 api 테스트
-                .antMatchers("/home","/login","/regist", "/post").permitAll()
+                .antMatchers("/home","/login","/regist", "/post", "/map").permitAll()
                 .antMatchers("/lc/test").hasRole("USER")
                 .anyRequest().authenticated()
                 .and()
+                .cors(cors -> cors.disable()) // cors 비활성화
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

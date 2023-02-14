@@ -34,5 +34,11 @@ public class PageController {
         return "post";
     }
 
+    // 카카오 지도 페이지 이동
+    @GetMapping("/map")
+    public String moveMapPage(){
+
+        return "map";
+    }
 
 }
