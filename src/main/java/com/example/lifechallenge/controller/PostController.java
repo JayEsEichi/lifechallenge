@@ -55,11 +55,11 @@ public class PostController {
 
 
     // 게시글 전체 목록 조회
-    @GetMapping("/post/readlist")
-    public ResponseEntity<ResponseBody> postReadList(HttpServletRequest request){
+    @GetMapping("/post/readlist/{pageNum}")
+    public ResponseEntity<ResponseBody> postReadList(HttpServletRequest request, @PathVariable Integer pageNum){
         log.info("게시글 전체 목록 조회 - 접근 유저 : {}", jwtTokenProvider.getMemberFromAuthentication().getNickname());
 
-        return postService.postReadList(request);
+        return postService.postReadList(request, pageNum);
     }
 
 

@@ -257,7 +257,13 @@ public class PostService {
 
 
     // 게시글 전체 목록 조회
-    public ResponseEntity<ResponseBody> postReadList(HttpServletRequest request) {
+    public ResponseEntity<ResponseBody> postReadList(HttpServletRequest request, Integer pageNum) {
+
+        // 페이징 처리 - 게시글 1페이지 당 15개씩 조회
+        // querydsl offset 사용하지 않음
+
+        int listCnt = 5; // 글 조회 리스트 개수
+        int pageListCnt = listCnt * pageNum; // 페이징 처리를 위해 첫 번째 글부터 시작하는 글을 알기 위한 변수
 
         // 유저 검증
         Member auth_member = checkAuthentication(request);
@@ -265,26 +271,31 @@ public class PostService {
         // 작성된 모든 게시글 리스트화
         List<Post> postList = queryFactory
                 .selectFrom(post)
+                .orderBy(post.createdAt.desc())
                 .fetch();
 
         // 최종적으로 리스트화된 게시글들이 반환될 List
         List<HashMap<String, String>> postListSet = new ArrayList<>();
 
-        // 전체 게시글들을 하나씩 조회
-        for(Post each_post : postList){
+        // for 문으로 입력된 페이지의 게시글들 목록 조회
+        for(int i = pageListCnt - listCnt ; i < pageListCnt ; i++){
 
-            // HashMap으로 조회된 게시글 일부 정보가 담김
-            HashMap<String, String> postSet = new HashMap<>();
+            if(i == postList.size()){ // 게시글이 존재하지 않는 마지막 부분에 도착하면 for 문을 break하여 빠져나감
+                break;
+            }else{ // 게시글이 존재할 경우 HashMap에 담아 반환
+                // HashMap으로 조회된 게시글 일부 정보가 담김
+                HashMap<String, String> postSet = new HashMap<>();
 
-            postSet.put("post_id", each_post.getPost_id().toString()); // 게시글 id
-            postSet.put("title", each_post.getTitle()); // 게시글 제목
-            postSet.put("nickname", each_post.getMember().getNickname()); // 게시글 작성자 닉네임
-            postSet.put("viewcnt", each_post.getViewcnt().toString()); // 게시글 조회수
-            postSet.put("createdAt", each_post.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd hh:mm"))); // 게시글 생성일자
+                postSet.put("post_id", postList.get(i).getPost_id().toString()); // 게시글 id
+                postSet.put("title", postList.get(i).getTitle()); // 게시글 제목
+                postSet.put("nickname", postList.get(i).getMember().getNickname()); // 게시글 작성자 닉네임
+                postSet.put("viewcnt", postList.get(i).getViewcnt().toString()); // 게시글 조회수
+                postSet.put("createdAt", postList.get(i).getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd hh:mm"))); // 게시글 생성일자
 
-            // 최종 반환 리스트에 담음
-            postListSet.add(postSet);
+                // 최종 반환 리스트에 담음
+                postListSet.add(postSet);
 
+            }
         }
 
         return new ResponseEntity<>(new ResponseBody(StatusCode.OK.getStatusCode(), StatusCode.OK.getStatus(), postListSet), HttpStatus.OK);
@@ -294,7 +305,6 @@ public class PostService {
     // 게시글 좋아요
     @Transactional
     public ResponseEntity<ResponseBody> postLike(HttpServletRequest request, Long post_id){
-
         // 유저 검증
         Member auth_member = checkAuthentication(request);
 
