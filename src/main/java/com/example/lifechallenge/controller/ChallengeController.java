@@ -16,7 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 @RequiredArgsConstructor
 @RequestMapping("/lc/challenge")
 @RestController
-public class PhaseController {
+public class ChallengeController {
 
     private final PhaseService phaseService;
     private final JwtTokenProvider jwtTokenProvider;
