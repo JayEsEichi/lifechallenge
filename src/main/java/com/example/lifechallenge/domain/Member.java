@@ -41,4 +41,7 @@ public class Member extends Timestamped {
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MemberLikePost> likePosts;
 
+    @OneToOne(mappedBy = "member")
+    private MemberDoChallenge memberDoChallenge;
+
 }

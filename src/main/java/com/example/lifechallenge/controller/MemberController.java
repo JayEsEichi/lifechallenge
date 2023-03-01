@@ -3,14 +3,11 @@ package com.example.lifechallenge.controller;
 import com.example.lifechallenge.controller.request.LoginRequestDto;
 import com.example.lifechallenge.controller.request.RegisterRequestDto;
 import com.example.lifechallenge.controller.response.ResponseBody;
-import com.example.lifechallenge.exception.StatusCode;
 import com.example.lifechallenge.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -23,7 +20,7 @@ import java.net.URLEncoder;
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/lc")
-@Controller
+@RestController
 public class MemberController {
 
     private final MemberService memberService;
@@ -32,7 +29,6 @@ public class MemberController {
     private String address_key;
 
     // 회원가입
-    @org.springframework.web.bind.annotation.ResponseBody
     @PostMapping("/register")
     public ResponseEntity<ResponseBody> memberRegister(@RequestBody RegisterRequestDto registerRequestDto){
         log.info("회원가입 - 아이디 : {}, 비밀번호 : {}, 재확인 비밀번호 : {}, 닉네임 : {}, 주소 : {}",
@@ -47,7 +43,6 @@ public class MemberController {
 
 
     // 로그인
-    @org.springframework.web.bind.annotation.ResponseBody
     @PostMapping("/login")
     public ResponseEntity<ResponseBody> memberLogin(HttpServletResponse response, @RequestBody LoginRequestDto loginRequestDto){
         log.info("로그인 - 아이디 : {}, 비밀번호 : {}", loginRequestDto.getMember_id(), loginRequestDto.getPassword());
@@ -57,7 +52,6 @@ public class MemberController {
 
 
     // 로그아웃
-    @org.springframework.web.bind.annotation.ResponseBody
     @PostMapping("/logout")
     public ResponseEntity<ResponseBody> memberLogout(HttpServletRequest request){
         log.info("로그아웃 - 유저 액세스 토큰 : {}, 유저 정보 : {}", request.getHeader("Authorization"), request.getUserPrincipal());
@@ -67,7 +61,6 @@ public class MemberController {
 
 
     // 회원탈퇴
-    @org.springframework.web.bind.annotation.ResponseBody
     @DeleteMapping("/unregister")
     public ResponseEntity<ResponseBody> memberUnregister(HttpServletRequest request){
         log.info("회원탈퇴 - 탈퇴 토큰 : {}", request.getHeader("Authorization"));

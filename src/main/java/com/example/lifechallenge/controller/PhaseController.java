@@ -1,5 +1,6 @@
 package com.example.lifechallenge.controller;
 
+import com.example.lifechallenge.controller.request.ChallengeRequestDto;
 import com.example.lifechallenge.controller.response.ResponseBody;
 import com.example.lifechallenge.jwt.JwtTokenProvider;
 import com.example.lifechallenge.service.PhaseService;
@@ -7,28 +8,26 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/lc")
+@RequestMapping("/lc/challenge")
 @RestController
 public class PhaseController {
 
     private final PhaseService phaseService;
     private final JwtTokenProvider jwtTokenProvider;
 
-    // 1단계 실행 (난이도)
-    @PostMapping("/phase1")
-    public ResponseEntity<ResponseBody> activatePhase1(HttpServletRequest request, @RequestParam String level){
-        log.info("페이즈 1단계 - 라이프 첼린지를 시작할 유저 : {}, 난이도 : {}", jwtTokenProvider.getMemberFromAuthentication(), level);
+    // 요청된 정보들로 유저 챌린지 세팅
+    @PostMapping("/create")
+    public ResponseEntity<ResponseBody> createChallenge(HttpServletRequest request, @RequestBody ChallengeRequestDto challengeRequestDto){
+        log.info("페이즈 1단계 - 라이프 첼린지를 시작할 유저 : {}, 난이도 : {}", jwtTokenProvider.getMemberFromAuthentication(), challengeRequestDto.getDifficulty());
 
-        return phaseService.activatePhase1(request, level);
+        return phaseService.createChallenge(request, challengeRequestDto);
     }
+
+
 }
