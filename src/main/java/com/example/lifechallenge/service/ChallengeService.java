@@ -19,12 +19,11 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
 @Service
-public class PhaseService {
+public class ChallengeService {
 
     private final JPAQueryFactory queryFactory;
     private final EntityManager entityManager;
